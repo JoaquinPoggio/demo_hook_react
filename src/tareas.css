@@ -1,0 +1,73 @@
+.tareas {
+  --suave: var(--text, #5b6675);
+  --borde: var(--border, #d5dae1);
+  --fondo: var(--bg, #fff);
+  --tinta: var(--text-h, #1d2733);
+  --azul: #1f5fbf;
+  --verde: #1b7a43;
+  --rojo: #b3261e;
+  box-sizing: border-box;
+  width: 100%;
+  flex-grow: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+  color: var(--tinta);
+  text-align: left;
+}
+
+.tareas * { box-sizing: border-box; }
+.tareas h1 { font-size: 1.8rem; margin: 0 0 20px; }
+.tareas h2 { font-size: 1.15rem; margin: 0 0 12px; }
+
+.tareas section {
+  background: var(--fondo);
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.tareas .form { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px 16px; }
+.tareas .form label { display: flex; flex-direction: column; gap: 4px; font-size: 0.9rem; color: var(--suave); }
+.tareas .ancho { grid-column: 1 / -1; }
+
+.tareas input, .tareas select, .tareas textarea {
+  font: inherit;
+  color: var(--tinta);
+  padding: 8px 10px;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  background: var(--fondo);
+}
+.tareas input:focus-visible, .tareas select:focus-visible,
+.tareas textarea:focus-visible, .tareas button:focus-visible {
+  outline: 2px solid var(--azul);
+  outline-offset: 1px;
+}
+
+.tareas button {
+  font: inherit;
+  padding: 6px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  background: var(--fondo);
+  color: var(--tinta);
+  cursor: pointer;
+}
+.tareas button:disabled { opacity: 0.45; cursor: not-allowed; }
+.tareas button.primario { background: var(--azul); border-color: var(--azul); color: #fff; }
+.tareas button.ok { color: var(--verde); border-color: var(--verde); }
+.tareas button.peligro { color: var(--rojo); border-color: var(--rojo); }
+
+.tareas .acciones { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.tareas .tabla-scroll { overflow-x: auto; }
+.tareas table { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+.tareas th, .tareas td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--borde); vertical-align: top; }
+.tareas th { white-space: nowrap; color: var(--suave); font-weight: 600; }
+.tareas td { min-width: 90px; }
+.tareas tr.finalizada td:not(.acciones) { color: var(--suave); text-decoration: line-through; }
+
+.tareas .vacio { color: var(--suave); margin: 0; }
+.tareas .error { background: #fdecea; color: var(--rojo); padding: 10px 14px; border-radius: 6px; }

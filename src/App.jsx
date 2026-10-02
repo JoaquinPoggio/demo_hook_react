@@ -1,143 +1,77 @@
-import { useState } from 'react'
-import Header from './components/Header'
-import Footer from './components/Footer'
-import './App.css'
+import { useEffect, useState } from 'react';
+import Header from './components/Header';
+import Footer from './components/Footer';
+import TaskForm from './components/TaskForm';
+import TaskList from './components/TaskList';
+import { api } from './api/client';
+import './App.css';
+import './tareas.css';
 
 function App() {
-  const [carrito, setCarrito] = useState([])
-  const [producto, setProducto] = useState('')
-  const [precio, setPrecio] = useState('')
-  const [cantidad, setCantidad] = useState('')
+  const [tareas, setTareas] = useState([]);
+  const [editando, setEditando] = useState(null);
+  const [error, setError] = useState('');
 
-  // funcion para agregar productos al carrito
-  const agregarProducto = () => {
-    const nombre = producto.trim()
-    const precioNumero = Number(precio)
-    const cantidadNumero = Number(cantidad)
-
-    if (!nombre || Number.isNaN(precioNumero) || precioNumero <= 0) {
-      return
+  const cargar = async () => {
+    try {
+      setTareas(await api.listar());
+      setError('');
+    } catch {
+      setError('No se pudo conectar con el servidor. Verificá que el backend esté levantado.');
     }
+  };
 
-    if (Number.isNaN(cantidadNumero) || cantidadNumero <= 0) {
-      return
-    }
+  useEffect(() => { cargar(); }, []);
 
-    const existente = carrito.findIndex(
-      (item) => item.producto.toLowerCase() === nombre.toLowerCase(),
-    )
+  const guardar = async (datos) => {
+    if (editando) await api.actualizar(editando.id, datos);
+    else await api.crear(datos);
+    setEditando(null);
+    await cargar();
+  };
 
-    if (existente !== -1) {
-      const actualizado = carrito.map((item, index) =>
-        index === existente
-          ? { ...item, cantidad: item.cantidad + cantidadNumero }
-          : item,
-      )
-      setCarrito(actualizado)
-    } else {
-      setCarrito([
-        ...carrito,
-        { producto: nombre, precio: precioNumero, cantidad: cantidadNumero },
-      ])
-    }
+  const eliminar = async (t) => {
+    if (!confirm(`¿Eliminar la tarea "${t.resumen}"?`)) return;
+    await api.eliminar(t.id);
+    if (editando?.id === t.id) setEditando(null);
+    await cargar();
+  };
 
-    setProducto('')
-    setPrecio('')
-    setCantidad('')
-  }
-
-  // funcion para eliminar productos del carrito
-  const eliminarProducto = (index) => {
-    setCarrito(carrito.filter((_, i) => i !== index))
-  }
-
-  const total = carrito.reduce(
-    (acc, item) => acc + item.precio * item.cantidad,
-    0,
-  )
-
- // funcion para vaciar el carrito
-  const vaciarCarrito = () => {
-    setCarrito([])
-  }
+  const finalizar = async (t) => {
+    await api.finalizar(t.id);
+    await cargar();
+  };
 
   return (
     <>
       <Header />
-      <main className="carrito">
-        <h1>demo de practica de react</h1>
+      <main className="tareas">
+        <h1>Gestor de tareas</h1>
+        {error && <p className="error">{error}</p>}
 
-        <form
-          className="carrito-form"
-          onSubmit={(event) => {
-            event.preventDefault()
-            agregarProducto()
-          }}
-        >
-          <input
-            type="text"
-            placeholder="Producto"
-            value={producto}
-            onChange={(event) => setProducto(event.target.value)}
+        <section>
+          <h2>{editando ? `Editando tarea #${editando.id}` : 'Nueva tarea'}</h2>
+          <TaskForm
+            key={editando?.id ?? 'nueva'}
+            inicial={editando}
+            onGuardar={guardar}
+            onCancelar={() => setEditando(null)}
           />
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            placeholder="Precio"
-            value={precio}
-            onChange={(event) => setPrecio(event.target.value)}
+        </section>
+
+        <section>
+          <h2>Listado de tareas</h2>
+          <TaskList
+            tareas={tareas}
+            onEditar={(t) => { setEditando(t); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            onEliminar={eliminar}
+            onFinalizar={finalizar}
           />
-          <input
-            type="number"
-            min="1"
-            step="1"
-            placeholder="Cantidad"
-            value={cantidad}
-            onChange={(event) => setCantidad(event.target.value)}
-          />
-        </form>
-
-        <div className="carrito-botones">
-          <button className="Button_Agregar" type="button" onClick={agregarProducto}>
-            Agregar Producto
-          </button>
-          <button
-            className="Button_Vaciar"
-            type="button"
-            onClick={vaciarCarrito}
-            disabled={carrito.length === 0}
-          >
-            Vaciar Carrito
-          </button>
-        </div>
-
-        {carrito.length === 0 ? (
-          <p>El carrito esta vacio</p>
-        ) : (
-          <ul className="carrito-lista">
-            {carrito.map((item, index) => (
-              <li key={`${item.producto}-${index}`}>
-                <span>
-                  {item.producto} — ${item.precio} x {item.cantidad}
-                </span>
-                <button
-                  className="Button_Eliminar"
-                  type="button"
-                  onClick={() => eliminarProducto(index)}
-                >
-                  Eliminar Producto
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        <p className="carrito-total">Total: ${total.toFixed(2)}</p>
+        </section>
       </main>
       <Footer />
     </>
-  )
+  );
 }
 
-export default App
+export default App;
